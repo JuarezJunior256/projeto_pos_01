@@ -1,4 +1,5 @@
 import { openai } from "./clients/openai";
+import { withRetry } from "./utils/withRetry";
 
 const PERSONAS = {
   juridico:
@@ -26,33 +27,35 @@ async function chatWithPersona(
   persona: keyof typeof PERSONAS,
   question: string,
 ) {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: PERSONAS[persona],
-      },
-      {
-        role: "user",
-        content: question,
-      },
-    ],
-    stream: false,
+  await withRetry(async () => {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: PERSONAS[persona],
+        },
+        {
+          role: "user",
+          content: question,
+        },
+      ],
+      stream: false,
+    });
+
+    const content = response.choices[0]?.message?.content ?? "";
+    if (content.length > 0) {
+      console.log(content);
+    }
+    // TRECHO PARA TESTE DE STREAMING DE RESPOSTA DO CHATGPT
+    // for await (const chunk of response) {
+    //   const content = chunk.choices[0]?.delta?.content ?? "";
+
+    //   if (content.length > 0) {
+    //     process.stdout.write(content);
+    //   }
+    // }
   });
-
-  const content = response.choices[0]?.message?.content ?? "";
-  if (content.length > 0) {
-    console.log(content);
-  }
-
-  // for await (const chunk of response) {
-  //   const content = chunk.choices[0]?.delta?.content ?? "";
-
-  //   if (content.length > 0) {
-  //     process.stdout.write(content);
-  //   }
-  // }
 }
 
 // await chatWithPersona(
