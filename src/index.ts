@@ -9,6 +9,19 @@ const PERSONAS = {
     "Você é um especialista em tecnologia da informação, com amplo conhecimento em desenvolvimento de software, infraestrutura de TI e tendências tecnológicas.",
 } as const;
 
+const contract = `
+  clausula 1: O presente contrato estabelece as condições para a prestação de serviços de consultoria tributária e contábil, incluindo a análise de obrigações fiscais e a elaboração de relatórios financeiros.
+  clausula 2: As partes concordam em manter a confidencialidade de todas as informações compartilhadas durante a vigência deste contrato, incluindo dados financeiros e estratégias empresariais.
+  `;
+
+function contractAnalysisPrompt(params: {
+  contractText: string;
+  clientType: "pf" | "pj";
+  levelOfDetail: "high" | "medium" | "low";
+}): string {
+  return `Voce recebera um contrato se o cliente é ${params.clientType === "pf" ? "pessoa física" : "pessoa jurídica"} e o nível de detalhamento solicitado é ${params.levelOfDetail}. Analise o seguinte contrato e identifique possíveis riscos legais ou cláusulas que possam ser problemáticas: ${params.contractText}`;
+}
+
 async function chatWithPersona(
   persona: keyof typeof PERSONAS,
   question: string,
@@ -42,12 +55,16 @@ async function chatWithPersona(
   // }
 }
 
+// await chatWithPersona(
+//   "juridico",
+//   "Analise o seguinte contrato e identifique possíveis riscos legais ou cláusulas que possam ser problemáticas: " +
+//     contract,
+// );
 await chatWithPersona(
   "juridico",
-  "Quais são as principais obrigações fiscais de uma empresa no Brasil?",
-);
-console.log("*".repeat(100));
-await chatWithPersona(
-  "contabilidade",
-  "Quais são as principais obrigações fiscais de uma empresa no Brasil?",
+  contractAnalysisPrompt({
+    contractText: contract,
+    clientType: "pj",
+    levelOfDetail: "high",
+  }),
 );
