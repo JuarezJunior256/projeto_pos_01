@@ -1,4 +1,5 @@
 import { openai } from "./clients/openai";
+import { generateWithCritique } from "./utils/generateWithCritique";
 import { withRetry } from "./utils/withRetry";
 
 const PERSONAS = {
@@ -28,25 +29,31 @@ async function chatWithPersona(
   question: string,
 ) {
   await withRetry(async () => {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: PERSONAS[persona],
-        },
-        {
-          role: "user",
-          content: question,
-        },
-      ],
-      stream: false,
-    });
+    const systemPrompt = PERSONAS[persona];
+    const response = await generateWithCritique(systemPrompt, question);
+    console.log(
+      `\n\nResposta do ChatGPT com persona ${persona.toLocaleUpperCase()}:\n\n${response}`,
+    );
 
-    const content = response.choices[0]?.message?.content ?? "";
-    if (content.length > 0) {
-      console.log(content);
-    }
+    // const response = await openai.chat.completions.create({
+    //   model: "gpt-4o-mini",
+    //   messages: [
+    //     {
+    //       role: "system",
+    //       content: PERSONAS[persona],
+    //     },
+    //     {
+    //       role: "user",
+    //       content: question,
+    //     },
+    //   ],
+    //   stream: false,
+    // });
+
+    // const content = response.choices[0]?.message?.content ?? "";
+    // if (content.length > 0) {
+    //   console.log(content);
+    // }
     // TRECHO PARA TESTE DE STREAMING DE RESPOSTA DO CHATGPT
     // for await (const chunk of response) {
     //   const content = chunk.choices[0]?.delta?.content ?? "";
